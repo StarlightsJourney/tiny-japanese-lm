@@ -1,0 +1,22 @@
+# Server-side copy of .githooks: local hooks can be skipped with --no-verify, this can't.
+name: guard
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  attribution:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: No AI attribution or bot identities in any commit
+        run: .githooks/guard.sh commits HEAD
+      - name: No AI footer in the PR description
+        if: github.event_name == 'pull_request'
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+          BODY: ${{ github.event.pull_request.body }}
+        run: printf '%s\n\n%s\n' "$TITLE" "$BODY" > /tmp/pr.txt && .githooks/guard.sh message /tmp/pr.txt

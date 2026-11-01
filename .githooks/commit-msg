@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Blocks AI attribution in the commit message (Co-Authored-By, "Generated with", ...).
+exec "$(dirname "$0")/guard.sh" message "$1"

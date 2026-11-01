@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Blocks secrets and AI identities before a commit is made.
+dir=$(dirname "$0")
+"$dir/guard.sh" identity "$(git var GIT_AUTHOR_IDENT | sed 's/ [0-9]* [-+][0-9]*$//')" &&
+"$dir/guard.sh" identity "$(git var GIT_COMMITTER_IDENT | sed 's/ [0-9]* [-+][0-9]*$//')" &&
+"$dir/guard.sh" staged

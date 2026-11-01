@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Re-checks every commit about to be pushed, including ones made elsewhere.
+dir=$(dirname "$0")
+zero=0000000000000000000000000000000000000000
+while read -r _ local_sha _ remote_sha; do
+  [ "$local_sha" = "$zero" ] && continue  # deleting a branch
+  if [ "$remote_sha" = "$zero" ]; then range="$local_sha"; else range="$remote_sha..$local_sha"; fi
+  "$dir/guard.sh" commits "$range" || exit 1
+done

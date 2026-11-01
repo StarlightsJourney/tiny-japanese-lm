@@ -1,0 +1,93 @@
+% Report skeleton. Paste into the course Overleaf template if you prefer it.
+% Lines marked TODO are for you to write: the analysis and conclusions must be
+% your own (the marking checks for genuine engagement). Limit: 10 pages total.
+\documentclass[11pt]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{graphicx,booktabs,amsmath,hyperref,xcolor}
+\usepackage[numbers]{natbib}
+\newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
+
+\title{How Good Can a Japanese Language Model Get in 30 GPU-Minutes?\\
+\large Tokenization, model size and data repetition under a fixed budget}
+\author{YOUR NAME (YOUR STUDENT ID)}
+\date{}
+
+\begin{document}
+\maketitle
+\noindent\textbf{Code:} \url{https://github.com/StarlightsJourney/tiny-japanese-lm}\\
+\textbf{Context:} the model is designed for integration into Sheng, the author's
+separate offline app for learning Japanese from real media, as an on-device
+sentence-difficulty scorer.
+
+\paragraph{Declared setup.}
+\textbf{Compute budget:} each training run in the final comparisons gets
+1{,}800\,s of training-step time on one NVIDIA L4 GPU (24\,GB) rented through
+Modal; validation, testing, data preparation, tokenizer training and
+learning-rate sweeps are excluded. \textbf{Initialisation:} every model starts
+from random weights; no pretrained weights, embeddings or neural components are
+used. \textbf{Evaluation:} bits per byte (BPB) on held-out Japanese subtitle text
+(primary) and Wikipedia text (secondary), which is comparable across tokenizers
+because it is normalised by the UTF-8 bytes of the same text.
+\todo{one sentence on why subtitles are the primary test: Sheng's users learn from films and TV.}
+
+\section{Introduction}
+\todo{Motivation: Sheng (offline app for learning Japanese from real media) needs a
+model small enough to run on a laptop, e.g.\ to rank sentences by difficulty. Is it
+worth training our own tiny model, and how should a small budget be spent?
+State the four questions and preview the answers.}
+
+\section{Background}
+\todo{In your own words: compute-optimal allocation of parameters vs tokens
+\citep{hoffmann2022chinchilla}; value of repeated data \citep{muennighoff2023scaling};
+why tokenization matters more for Japanese (no spaces, three scripts); related work on
+level-appropriate example sentences \citep{benedetti2025examples}. Cite papers beyond
+the starter kit too.}
+
+\section{Method}
+\subsection{Data}
+Subtitles are the Japanese side of JESC \citep{pryzant2018jesc}, with exact duplicate
+lines removed and each unique line assigned to train, validation or test (99/0.5/0.5)
+by a hash. Wikipedia text is the first $\sim$600\,MB of the 20231101 Japanese dump, with
+whole articles assigned to one split. \todo{table of split sizes from results/tokenizer\_stats.json.}
+
+\subsection{Tokenizers}
+Four lossless tokenizers: raw bytes (256 tokens); characters (most frequent
+$\le$8{,}000 characters plus 256 byte fallbacks); and byte-level BPE with 4{,}096 and
+16{,}384 tokens, learned from 40\,MB of each source. Because each token id maps to a
+known number of bytes, summed loss converts exactly into BPB.
+
+\subsection{Model and training}
+A decoder-only transformer adapted from nanoGPT \citep{karpathy2022nanogpt}: pre-norm
+blocks, GELU MLP, learned positions, tied input/output embeddings, context 512 tokens,
+batch 64 sequences. AdamW ($\beta=(0.9,0.95)$, weight decay 0.1, gradient clip 1.0),
+bf16. Because the number of steps is unknown under a time budget, the learning rate
+warms up over the first 2\% of elapsed budget then follows cosine decay to 10\% of its
+peak, as a function of elapsed time. Peak learning rates were chosen per model size by
+a preliminary sweep of 6-minute runs. \todo{report the chosen rates.}
+
+\subsection{Difficulty evaluation}
+Tatoeba sentences of 5--40 characters are labelled with the JLPT level (N5--N1) of
+their hardest content word, using open JLPT word lists; sentences containing any
+content word outside the lists are dropped. Up to 400 sentences per level are kept.
+Each is scored by BPB under the model, and we report Spearman correlation with level
+against two baselines: sentence length and kanji share.
+
+\section{Experiments and results}
+\todo{For each: the question, what changed, figure/table, what it shows, a follow-up.}
+\subsection{Tokenization} \todo{Fig.~tokenizer.pdf; discuss tokens/s, context in bytes.}
+\subsection{Model size versus training length} \todo{Fig.~size.pdf; compare tokens/param with the $\sim$20 of Chinchilla.}
+\subsection{Repeating scarce in-domain data} \todo{Fig.~data.pdf; epochs of subtitles vs Muennighoff's $\sim$4-epoch finding.}
+\subsection{Run-to-run variation} \todo{baseline mean $\pm$ std over 3 seeds; which differences above are larger than this?}
+\subsection{Does surprise track difficulty?} \todo{Spearman table with 95\% bootstrap intervals; per-level plot.}
+
+\section{Discussion and limitations}
+\todo{What is established vs uncertain. E.g.\ one budget and one GPU type; LR tuned on
+one tokenizer; JLPT labels from word lists ignore grammar; Wikipedia/Tatoeba overlap;
+whether results would hold at larger budgets.}
+
+\section{Conclusion}
+\todo{Answers to the questions, and what it means for Sheng.}
+
+\bibliographystyle{plainnat}
+\bibliography{refs}
+\end{document}

@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.DS_Store
+ckpt/
+data/raw/
+data/tok/
+report/*.aux
+report/*.log
+report/*.bbl
+report/*.blg
+report/*.out
+.venv/
+.env
+*.env
