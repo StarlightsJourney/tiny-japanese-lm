@@ -91,11 +91,10 @@ The last command trains tiny models on fake data on your CPU in about two
 minutes. It should end with `SMOKE TEST PASSED`. The `git config` line turns
 on the repository's hooks, which block secrets and AI attribution in commits.
 
-## Keys
+## Modal key
 
-There are two, and neither goes in a tracked file.
-
-**Modal** runs the GPU jobs. Its key is created and stored for you:
+Modal runs the GPU jobs. Its key is created and stored for you, never in a
+tracked file:
 
 ```bash
 modal setup
@@ -105,18 +104,8 @@ This opens a browser, logs you in, and writes the token to `~/.modal.toml`
 in your home folder, outside this repository. You never paste it anywhere.
 On a machine without a browser, create a token at
 https://modal.com/settings/tokens and set `MODAL_TOKEN_ID` and
-`MODAL_TOKEN_SECRET` in your shell instead.
-
-**OpenRouter** is optional and nothing uses it yet. It's for a planned
-second set of difficulty labels (see the brief). Put it in `.env`:
-
-```bash
-cp .env.example .env
-# then edit .env:  OPENROUTER_API_KEY=sk-or-v1-...
-```
-
-`.env` is git-ignored, and the pre-commit hook refuses to commit it or
-anything that looks like a key.
+`MODAL_TOKEN_SECRET` in your shell instead. The pre-commit hook refuses to
+commit anything that looks like an API key.
 
 Modal needs a card on file for its free credit (about US$30 a month). Enter
 it only on modal.com. Before running anything, go to

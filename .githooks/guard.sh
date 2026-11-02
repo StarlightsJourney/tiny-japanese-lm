@@ -16,7 +16,7 @@ AI='claude|anthropic|openai|chatgpt|gpt-?[0-9]|codex|copilot|cursor|gemini|aider
 TRAILER='^[[:space:]]*[a-z-]*(by|with)[[:space:]]*:'
 # Footers that tools add to messages and PRs.
 FOOTER="(generated|written|made|created) (with|by|using) (an? )?(ai|$AI)|"'claude\.com/claude-code|claude\.ai/code|noreply@anthropic\.com|🤖'
-# API keys. OpenRouter, Anthropic, OpenAI, Modal, GitHub, Hugging Face.
+# API keys in the formats common providers use (including Modal, GitHub and Hugging Face).
 SECRET='sk-or-v1-[A-Za-z0-9]{20,}|sk-ant-[A-Za-z0-9_-]{20,}|sk-(proj-)?[A-Za-z0-9]{32,}|\b(ak|as)-[A-Za-z0-9]{20,}\b|gh[pousr]_[A-Za-z0-9]{30,}|hf_[A-Za-z0-9]{30,}'
 
 fail() { echo "blocked: $*" >&2; exit 1; }

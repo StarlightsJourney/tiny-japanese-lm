@@ -98,15 +98,6 @@ US$8.16 of Modal time for everything, all of it from the ~US$30 monthly free
 credit. Set Modal's spend limit to $0 before the first run so nothing can be
 charged beyond the credit.
 
-## Optional extension: OpenRouter
-
-The JLPT labels come from word lists and ignore grammar. An OpenRouter key could
-add a second, independent difficulty label: ask a large hosted LLM to rate each
-test sentence N5-N1, then report how well our model's BPB agrees with both label
-sets. This touches evaluation only; no hosted model is used in training, so the
-from-scratch rule still holds. The key would live in a local `.env` (already
-git-ignored), never in the repository. Not built yet.
-
 ## Integration path into Sheng (after the course)
 
 The original plan was to ship the model as Sheng's difficulty scorer. The
@@ -115,8 +106,7 @@ results change that:
 1. **Difficulty:** use sentence length and kanji share, scored with the JLPT
    word lists Sheng already needs. It is free, instant and easy to explain.
 2. **Revisit the model only with better labels.** Graded-reader text or
-   teacher ratings would test grammar as well as vocabulary. The OpenRouter
-   extension above is a cheap way to get a second label set.
+   teacher ratings would test grammar as well as vocabulary.
 3. **If Sheng needs a small Japanese language model for something else**, such
    as ranking candidate transcriptions, the configuration to use is the 17M
    model trained on mostly subtitles (about 35 MB at half precision).
