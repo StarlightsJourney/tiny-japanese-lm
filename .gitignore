@@ -12,3 +12,4 @@ report/*.out
 .venv/
 .env
 *.env
+logs/

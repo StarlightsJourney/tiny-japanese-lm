@@ -1,0 +1,75 @@
+{
+  "name": "lr_s_0.004",
+  "config": {
+    "name": "lr_s_0.004",
+    "tokenizer": "bpe16k",
+    "size": "s",
+    "lr": 0.004,
+    "batch_size": 64,
+    "seq_len": 512,
+    "budget_s": 360,
+    "subs_weight": "natural",
+    "seed": 0,
+    "eval_every_s": 120,
+    "warmup_frac": 0.02,
+    "min_lr_frac": 0.1,
+    "grad_clip": 1.0,
+    "weight_decay": 0.1,
+    "val_tokens": 200000,
+    "test_tokens": 2000000
+  },
+  "test_bpb_subs": 1.5355371132174394,
+  "test_bpb_wiki": 1.602534156646018,
+  "final_val_bpb_subs": 1.5273,
+  "final_val_bpb_wiki": 1.5839,
+  "params_non_embedding": 10626816,
+  "params_total": 17114880,
+  "vocab_size": 16384,
+  "steps": 1550,
+  "tokens_seen": 50790400,
+  "tokens_per_param": 4.779456047794561,
+  "tokens_per_second": 141068.24432949544,
+  "train_seconds": 360.0413419859966,
+  "subs_weight_used": 0.16018299991447926,
+  "epochs_subs": 0.34536641771339466,
+  "epochs_wiki": 0.34366933305096403,
+  "bytes_per_token_subs_test": 4.993995028671277,
+  "context_bytes": 2556.9254546796938,
+  "approx_train_flops": 5215629606912000,
+  "curve": [
+    {
+      "train_s": 0.2,
+      "step": 1,
+      "tokens": 32768,
+      "train_loss": 9.7905,
+      "val_bpb_subs": 2.8203,
+      "val_bpb_wiki": 3.0906
+    },
+    {
+      "train_s": 120.1,
+      "step": 517,
+      "tokens": 16941056,
+      "train_loss": 6.1187,
+      "val_bpb_subs": 1.6873,
+      "val_bpb_wiki": 1.9
+    },
+    {
+      "train_s": 240.1,
+      "step": 1034,
+      "tokens": 33882112,
+      "train_loss": 5.3824,
+      "val_bpb_subs": 1.5774,
+      "val_bpb_wiki": 1.6764
+    },
+    {
+      "train_s": 360.0,
+      "step": 1550,
+      "tokens": 50790400,
+      "train_loss": 5.0783,
+      "val_bpb_subs": 1.5273,
+      "val_bpb_wiki": 1.5839
+    }
+  ],
+  "device": "NVIDIA L4",
+  "torch": "2.6.0+cu124"
+}

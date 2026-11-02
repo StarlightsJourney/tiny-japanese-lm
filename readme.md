@@ -33,6 +33,27 @@ Question 4 tests exactly that. Sheng is a separate, private project; nothing
 here depends on it. [docs/brief.md](docs/brief.md) explains the plan in more
 detail.
 
+## Results
+
+The full write-up is [report/report.pdf](report/report.pdf). In short, with 30
+minutes on one L4:
+
+| Question | Answer | Test bits per byte, subtitles |
+| --- | --- | --- |
+| Tokenizer | BPE-16k beats BPE-4k, characters and bytes | 1.334 vs 1.344, 1.362, 1.430 |
+| Size | 10.6M and 25M tie; 3M and 59M are worse | 1.334, 1.336 vs 1.358, 1.386 |
+| Data mix | More subtitles always helped, even repeated 11 times | 1.270 (all subtitles) vs 1.718 (none) |
+| Difficulty | Surprise adds nothing measurable to sentence length | – |
+
+Run-to-run noise is small: the baseline varies by 0.0015 across three seeds.
+The best model trained on 24 tokens per parameter, close to the ~20 that
+Hoffmann et al. found best for models a thousand times larger.
+
+The difficulty result is negative. Per byte, short sentences look surprising
+whatever their content, and easy sentences are short, so the two effects
+cancel. A score built from sentence length and the share of kanji tracks JLPT
+level better (Spearman 0.36) than anything that uses the model.
+
 ## Setup
 
 You need Python 3.10 or newer.
@@ -90,18 +111,22 @@ hour, including start-up and evaluation.
 | --- | --- | --- | --- | --- |
 | 1 | `modal run code/modal_app.py --exp prepare` | Download, split and tokenize data; build the JLPT set | ~1 h | ~$1.50 |
 | 2 | `modal run code/modal_app.py --exp smoke` | 3-minute GPU check | 5 min | $0.05 |
-| 3 | `modal run code/modal_app.py --exp lr` | Learning-rate sweep, 12 runs of 6 min (preliminary) | ~15 min | ~$1.50 |
-| 4 | Set `LR_BY_SIZE` in `code/configs.py` to the best rate per size | | | |
+| 3 | `modal run code/modal_app.py --exp lr` | Learning-rate sweep, 12 runs of 6 min (preliminary) | ~45 min | ~$1.20 |
+| 4 | Set `LR_BY_SIZE` in `code/configs.py` to the best rate per size, then run step 3 again: it adds only the runs that are new, so each best rate ends up with a worse rate on both sides | | ~15 min | ~$0.40 |
 | 5 | `modal run code/modal_app.py --exp tokenizer` | Question 1, 4 runs in parallel | ~40 min | ~$2 |
 | 6 | Set `BEST_TOKENIZER` in `code/configs.py` if BPE 16k didn't win | | | |
 | 7 | `modal run code/modal_app.py --exp size` | Question 2 | ~40 min | ~$1.50 |
 | 8 | `modal run code/modal_app.py --exp data` | Question 3 | ~40 min | ~$1.50 |
 | 9 | `modal run code/modal_app.py --exp seeds` | Baseline with 2 more seeds, to measure noise | ~40 min | ~$1 |
-| 10 | `modal run code/modal_app.py --exp difficulty --run base` | Question 4 | 5 min | $0.05 |
+| 10 | `modal run code/modal_app.py --exp difficulty --run base`, then the same with `--run data_subs0.5` and `--run data_subs1` | Question 4, for three data mixes | ~5 min each | ~$0.05 each |
 | 11 | `python code/plot.py` | Figures in `report/figures/`, table in `results/summary.csv` | 1 min | free |
+| 12 | `python code/analysis.py` | Follow-ups: length plus surprise, equal compute, memorisation (`results/analysis.json`) | 1 min | free |
+| 13 | `modal volume get tiny-japanese-lm data/tok/<t>/tokenizer.json data/tok/<t>/tokenizer.json` for `<t>` in char, bpe4k, bpe16k, then `python code/tokenizer_example.py` | How each tokenizer splits one sentence (report Table 2) | 1 min | free |
+| 14 | `cd report && tectonic -X compile report.tex` | Builds `report/report.pdf` with XeLaTeX (needed for the Japanese text and the Atkinson Hyperlegible font). On Overleaf, set the compiler to XeLaTeX. | 1 min | free |
 
-The whole thing costs about US$9, so one month of free credit covers it with
-room to rerun.
+The whole project cost US$8.16 on Modal's billing report, all of it free
+credit. Times are wall-clock and include waiting: a new Modal account runs only
+a few GPUs at once, so the runs in one step queue behind each other.
 
 A run that already has a file in `results/` is skipped; add `--force` to
 rerun it. If a GPU is preempted, run the same command again.
@@ -144,6 +169,8 @@ code/
   configs.py        every run in the report
   modal_app.py      runs it all on Modal
   plot.py           figures and summary table
+  analysis.py       follow-up analyses on saved results
+  tokenizer_example.py  how each tokenizer splits one sentence
   smoke_test.py     2-minute CPU check
 data/jlpt/          JLPT word lists (MIT)
 docs/brief.md       what the model is for and how it's built

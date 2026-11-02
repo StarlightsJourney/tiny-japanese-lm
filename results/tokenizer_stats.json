@@ -1,0 +1,146 @@
+[
+  {
+    "spec": "byte",
+    "vocab_size": 256,
+    "splits": {
+      "subs_train": {
+        "tokens": 118529768,
+        "bytes": 118529768,
+        "bytes_per_token": 1.0
+      },
+      "subs_val": {
+        "tokens": 607881,
+        "bytes": 607881,
+        "bytes_per_token": 1.0
+      },
+      "subs_test": {
+        "tokens": 608763,
+        "bytes": 608763,
+        "bytes_per_token": 1.0
+      },
+      "wiki_train": {
+        "tokens": 561844246,
+        "bytes": 561844246,
+        "bytes_per_token": 1.0
+      },
+      "wiki_val": {
+        "tokens": 2955329,
+        "bytes": 2955329,
+        "bytes_per_token": 1.0
+      },
+      "wiki_test": {
+        "tokens": 3815209,
+        "bytes": 3815209,
+        "bytes_per_token": 1.0
+      }
+    }
+  },
+  {
+    "spec": "char",
+    "vocab_size": 5276,
+    "splits": {
+      "subs_train": {
+        "tokens": 42431083,
+        "bytes": 118529768,
+        "bytes_per_token": 2.793465535631037
+      },
+      "subs_val": {
+        "tokens": 217540,
+        "bytes": 607881,
+        "bytes_per_token": 2.7943412705709294
+      },
+      "subs_test": {
+        "tokens": 217926,
+        "bytes": 608763,
+        "bytes_per_token": 2.793439057294678
+      },
+      "wiki_train": {
+        "tokens": 210021193,
+        "bytes": 561844246,
+        "bytes_per_token": 2.6751788139780732
+      },
+      "wiki_val": {
+        "tokens": 1098169,
+        "bytes": 2955329,
+        "bytes_per_token": 2.6911422558822915
+      },
+      "wiki_test": {
+        "tokens": 1422368,
+        "bytes": 3815209,
+        "bytes_per_token": 2.6822938930009674
+      }
+    }
+  },
+  {
+    "spec": "bpe4k",
+    "vocab_size": 4096,
+    "splits": {
+      "subs_train": {
+        "tokens": 29389929,
+        "bytes": 118529768,
+        "bytes_per_token": 4.033006272318657
+      },
+      "subs_val": {
+        "tokens": 150636,
+        "bytes": 607881,
+        "bytes_per_token": 4.035429777742372
+      },
+      "subs_test": {
+        "tokens": 151289,
+        "bytes": 608763,
+        "bytes_per_token": 4.023841786250157
+      },
+      "wiki_train": {
+        "tokens": 159229765,
+        "bytes": 561844246,
+        "bytes_per_token": 3.528512687310692
+      },
+      "wiki_val": {
+        "tokens": 823018,
+        "bytes": 2955329,
+        "bytes_per_token": 3.5908436996517694
+      },
+      "wiki_test": {
+        "tokens": 1073143,
+        "bytes": 3815209,
+        "bytes_per_token": 3.555172982538208
+      }
+    }
+  },
+  {
+    "spec": "bpe16k",
+    "vocab_size": 16384,
+    "splits": {
+      "subs_train": {
+        "tokens": 23654506,
+        "bytes": 118529768,
+        "bytes_per_token": 5.010874799076337
+      },
+      "subs_val": {
+        "tokens": 121011,
+        "bytes": 607881,
+        "bytes_per_token": 5.023353248878201
+      },
+      "subs_test": {
+        "tokens": 121899,
+        "bytes": 608763,
+        "bytes_per_token": 4.993995028671277
+      },
+      "wiki_train": {
+        "tokens": 124017257,
+        "bytes": 561844246,
+        "bytes_per_token": 4.5303714949928295
+      },
+      "wiki_val": {
+        "tokens": 638908,
+        "bytes": 2955329,
+        "bytes_per_token": 4.625593982232184
+      },
+      "wiki_test": {
+        "tokens": 836360,
+        "bytes": 3815209,
+        "bytes_per_token": 4.561682768185949
+      }
+    }
+  }
+]

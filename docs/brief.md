@@ -3,8 +3,9 @@
 ## One line
 
 A Japanese language model small enough to ship inside a desktop app, trained
-from scratch on 30 GPU-minutes, whose job is to say how surprising (and so how
-hard) a sentence is for a learner.
+from scratch in 30 GPU-minutes, to test whether its surprise at a sentence can
+tell how hard the sentence is for a learner. (It mostly can't; see "What we
+found".)
 
 ## The problem
 
@@ -78,11 +79,24 @@ Design choices worth defending in the report:
 - **Every run writes one JSON** (config, curve, scores) so the report can be
   checked against the repository.
 
-## Compute plan and cost
+## What we found
 
-About US$9 of Modal time for everything (see the readme table), inside one
-month of the ~US$30 free credit. Set Modal's spend limit to $0 before the first
-run so nothing can be charged beyond the credit.
+- **The model can be trained.** A 17M-parameter model (10.6M without
+  embeddings) with a 16k BPE vocabulary reaches 1.33 bits per byte on subtitles
+  in 30 minutes, or 1.27 when trained on subtitles only.
+- **It is not a good difficulty score.** Its surprise barely tracks JLPT level
+  (Spearman 0.05-0.12). With length held fixed there is a modest signal (about
+  0.15), but adding the model to sentence length does not improve predictions
+  on held-out sentences. Length plus the share of kanji does better (0.36) at no
+  cost.
+- **So the hypothesis failed**, at least with word-list labels, which favour
+  length and ignore grammar. The full analysis is in the report.
+
+## Compute and cost
+
+US$8.16 of Modal time for everything, all of it from the ~US$30 monthly free
+credit. Set Modal's spend limit to $0 before the first run so nothing can be
+charged beyond the credit.
 
 ## Optional extension: OpenRouter
 
@@ -95,15 +109,20 @@ git-ignored), never in the repository. Not built yet.
 
 ## Integration path into Sheng (after the course)
 
-1. Export the best checkpoint (expected: ~10-25M params) to ONNX or a
-   quantised format; ship it with Sheng's tokenizer file.
-2. Score each finished subtitle line in Sheng's background worker; cache by text.
-3. Map BPB to a coarse level using the Experiment 4 calibration (mean BPB per
-   JLPT level).
-4. Use it to rank saved cards and flag lines near the user's level.
+The original plan was to ship the model as Sheng's difficulty scorer. The
+results change that:
 
-Success for Sheng: rho with JLPT level clearly above the length and kanji
-baselines, and under ~10 ms per line on a laptop CPU.
+1. **Difficulty:** use sentence length and kanji share, scored with the JLPT
+   word lists Sheng already needs. It is free, instant and easy to explain.
+2. **Revisit the model only with better labels.** Graded-reader text or
+   teacher ratings would test grammar as well as vocabulary. The OpenRouter
+   extension above is a cheap way to get a second label set.
+3. **If Sheng needs a small Japanese language model for something else**, such
+   as ranking candidate transcriptions, the configuration to use is the 17M
+   model trained on mostly subtitles (about 35 MB at half precision).
+
+The original success test was a correlation clearly above the length and kanji
+baselines, at under ~10 ms per line on a laptop CPU. The model did not pass it.
 
 ## Out of scope
 

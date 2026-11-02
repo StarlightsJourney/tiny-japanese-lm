@@ -8,7 +8,10 @@ from __future__ import annotations
 BUDGET_S = 1800               # declared budget: 30 min of training per run on one L4 GPU
 SWEEP_BUDGET_S = 360          # learning-rate sweep runs are preliminary (6 min, not compared)
 BEST_TOKENIZER = "bpe16k"     # update after experiment 1 if another tokenizer wins
-LR_BY_SIZE = {"xs": 3e-3, "s": 2e-3, "m": 1.5e-3, "l": 1e-3}  # update after the sweep
+# Best validation BPB (subtitles) in the 6-minute sweep, each with a worse rate
+# on both sides. The first guesses were xs 3e-3, s 2e-3, m 1.5e-3, l 1e-3; s, m
+# and l preferred the lowest, so the sweep was rerun centred on these values.
+LR_BY_SIZE = {"xs": 3e-3, "s": 1e-3, "m": 7.5e-4, "l": 5e-4}
 
 BASE = dict(tokenizer="bpe16k", size="s", subs_weight="natural", seed=0, budget_s=BUDGET_S)
 
