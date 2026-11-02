@@ -3,10 +3,10 @@
 How good can a Japanese language model get if you train it from scratch for
 30 minutes on one GPU?
 
-This repository trains small GPT-style models (3M to 59M parameters) from
-random weights on Japanese film subtitles and Wikipedia. Every run gets the
-same budget: 30 minutes of training on one NVIDIA L4 GPU. Within that budget
-we ask four questions:
+This repository trains small GPT-style models (3M to 59M parameters, not
+counting embeddings) from random weights on Japanese film subtitles and
+Wikipedia. Every run gets the same budget: 30 minutes of training on one NVIDIA
+L4 GPU. Within that budget I ask four questions:
 
 1. **Tokenizer.** Should the model read bytes, characters, or learned word
    pieces (BPE with 4k or 16k tokens)?
@@ -17,8 +17,16 @@ we ask four questions:
 4. **Difficulty.** Is the model more surprised by sentences that are harder
    for learners, as measured by JLPT level?
 
-Every score is bits per byte on the same held-out text. Loss per token would
-favour tokenizers with long tokens; bits per byte doesn't.
+The report is [report/report.pdf](report/report.pdf). This readme summarises
+it and explains how to reproduce every number in it.
+
+## Declared setup
+
+| | |
+| --- | --- |
+| **Compute budget** | 30 minutes (1,800 s) of training per run on one NVIDIA L4 GPU (24 GB), rented from Modal. The clock runs only while the model is learning: reading a batch, measuring its errors and updating its weights. Scoring held-out text, data preparation, tokenizer training and the preliminary learning-rate search are not counted. |
+| **Initialisation** | Every model starts from random weights. No pretrained weights or embeddings. Tokenizers are trained on this project's own training data. |
+| **Evaluation objective** | Bits per byte (BPB) on held-out film subtitles (primary) and Wikipedia (secondary); lower is better. BPB is the model's total surprise in bits divided by the length of the text in bytes, so models with different tokenizers are compared on equal terms. Choices are made on a validation set; final numbers come from a separate test set. Every model is scored on the same subtitle test text. |
 
 ## Why
 
@@ -35,24 +43,38 @@ detail.
 
 ## Results
 
-The full write-up is [report/report.pdf](report/report.pdf). In short, with 30
-minutes on one L4:
-
-| Question | Answer | Test bits per byte, subtitles |
+| Question | Finding | Test BPB, subtitles |
 | --- | --- | --- |
-| Tokenizer | BPE-16k beats BPE-4k, characters and bytes | 1.334 vs 1.344, 1.362, 1.430 |
-| Size | 10.6M and 25M tie; 3M and 59M are worse | 1.334, 1.336 vs 1.358, 1.386 |
-| Data mix | More subtitles always helped, even repeated 11 times | 1.270 (all subtitles) vs 1.718 (none) |
-| Difficulty | Surprise adds nothing measurable to sentence length | – |
+| Tokenizer | Learned word pieces beat characters, and characters beat bytes. BPE-16k is best. | bpe16k 1.334, bpe4k 1.344, char 1.362, byte 1.430 |
+| Size | The best size is a flat region from 10M to 25M parameters. 3M and 59M are clearly worse. | 3M 1.358, 10.6M 1.334, 25M 1.336, 59M 1.386 |
+| Data mix | For subtitle text, subtitles in training matter far more than Wikipedia. Repeating them 11 times still helped slightly. | 0% 1.718, 16% 1.334, 50% 1.279, 100% 1.270 |
+| Difficulty | Model surprise adds nothing measurable to sentence length. Length plus kanji share is the better difficulty score. | – |
 
-Run-to-run noise is small: the baseline varies by 0.0015 across three seeds.
-The best model trained on 24 tokens per parameter, close to the ~20 that
-Hoffmann et al. found best for models a thousand times larger.
+- **Noise.** Three seeds of the baseline vary by 0.0015 BPB (standard
+  deviation). Gaps under about 0.005 on validation are treated as ties, so the
+  10.6M and 25M models tie.
+- **Size.** The best model read 24 tokens per parameter, or 15 if the
+  embedding table is counted. That is consistent with the ~20 of Hoffmann et
+  al. (2022), though one budget and four sizes are not a test of their rule.
+- **Time is not compute.** Bigger models use the GPU better, so in 30 minutes
+  the largest did twice the computation of the smallest. Compared at equal
+  computation instead, the 10.6M model clearly beats the 25M one. A time
+  budget favours bigger models somewhat.
+- **Repetition.** Each extra share of subtitles helps less: 0.38, then 0.055,
+  then 0.008. The subtitles-only run read the same text 10.8 times. Its gap
+  between validation and training loss nearly tripled, a sign it had begun to
+  memorise, though validation was still improving. It also more than doubled its
+  Wikipedia BPB. The 50% mix keeps most of the gain without that cost.
+- **Difficulty.** Model surprise barely tracks JLPT level (Spearman 0.05 to
+  0.12), while sentence length alone reaches 0.27. Easy sentences are short,
+  and short sentences score high per byte, likely because the start of any
+  sentence is hard to predict. With length held fixed, a weak link remains
+  (0.13 to 0.17). But adding the model to a length-based score does not
+  measurably improve predictions on held-out sentences, while adding the share
+  of kanji raises Spearman from 0.26 to 0.36.
 
-The difficulty result is negative. Per byte, short sentences look surprising
-whatever their content, and easy sentences are short, so the two effects
-cancel. A score built from sentence length and the share of kanji tracks JLPT
-level better (Spearman 0.36) than anything that uses the model.
+For Sheng, this means difficulty should come from sentence length and kanji
+share, not from the model.
 
 ## Setup
 
@@ -113,12 +135,12 @@ hour, including start-up and evaluation.
 | 2 | `modal run code/modal_app.py --exp smoke` | 3-minute GPU check | 5 min | $0.05 |
 | 3 | `modal run code/modal_app.py --exp lr` | Learning-rate sweep, 12 runs of 6 min (preliminary) | ~45 min | ~$1.20 |
 | 4 | Set `LR_BY_SIZE` in `code/configs.py` to the best rate per size, then run step 3 again: it adds only the runs that are new, so each best rate ends up with a worse rate on both sides | | ~15 min | ~$0.40 |
-| 5 | `modal run code/modal_app.py --exp tokenizer` | Question 1, 4 runs in parallel | ~40 min | ~$2 |
-| 6 | Set `BEST_TOKENIZER` in `code/configs.py` if BPE 16k didn't win | | | |
-| 7 | `modal run code/modal_app.py --exp size` | Question 2 | ~40 min | ~$1.50 |
-| 8 | `modal run code/modal_app.py --exp data` | Question 3 | ~40 min | ~$1.50 |
-| 9 | `modal run code/modal_app.py --exp seeds` | Baseline with 2 more seeds, to measure noise | ~40 min | ~$1 |
-| 10 | `modal run code/modal_app.py --exp difficulty --run base`, then the same with `--run data_subs0.5` and `--run data_subs1` | Question 4, for three data mixes | ~5 min each | ~$0.05 each |
+| 5 | `modal run code/modal_app.py --exp tokenizer` | Question 1, 4 runs | ~1 h | ~$2 |
+| 6 | Set `BEST_TOKENIZER` in `code/configs.py` if BPE-16k didn't win on validation (it did) | | | |
+| 7 | `modal run code/modal_app.py --exp size` | Question 2, 3 new runs | ~1 h | ~$1.50 |
+| 8 | `modal run code/modal_app.py --exp data` | Question 3, 3 new runs | ~1 h | ~$1.50 |
+| 9 | `modal run code/modal_app.py --exp seeds` | Baseline with 2 more seeds, to measure noise | ~45 min | ~$1 |
+| 10 | `modal run code/modal_app.py --exp difficulty --run base`, then the same with `--run data_subs0.5` and `--run data_subs1` | Question 4, for three data mixes | up to 30 min each, mostly waiting for a GPU | under $0.01 each |
 | 11 | `python code/plot.py` | Figures in `report/figures/`, table in `results/summary.csv` | 1 min | free |
 | 12 | `python code/analysis.py` | Follow-ups: length plus surprise, equal compute, memorisation (`results/analysis.json`) | 1 min | free |
 | 13 | `modal volume get tiny-japanese-lm data/tok/<t>/tokenizer.json data/tok/<t>/tokenizer.json` for `<t>` in char, bpe4k, bpe16k, then `python code/tokenizer_example.py` | How each tokenizer splits one sentence (report Table 2) | 1 min | free |
@@ -144,6 +166,9 @@ rerun it. If a GPU is preempted, run the same command again.
   model will get in 30 minutes.
 - **Not counted:** data preparation, tokenizer training and the 6-minute
   learning-rate sweep. The course rules allow this.
+- **Learning rates:** chosen per size by the sweep, on validation BPB:
+  3e-3 (xs), 1e-3 (s), 7.5e-4 (m), 5e-4 (l). Each has a worse rate on both
+  sides. The full table is in the report's appendix.
 
 ## Data
 
@@ -174,8 +199,8 @@ code/
   smoke_test.py     2-minute CPU check
 data/jlpt/          JLPT word lists (MIT)
 docs/brief.md       what the model is for and how it's built
-results/            one JSON per run
-report/             report source (LaTeX)
+results/            one JSON per run, summary.csv, analysis.json
+report/             report.pdf, its LaTeX source, bibliography and figures
 .githooks/          blocks secrets and AI attribution in commits
 AGENTS.md           rules for AI coding agents working here
 ```
